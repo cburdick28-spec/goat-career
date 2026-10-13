@@ -12,6 +12,11 @@ export function buildCareerFromForm(formState, seed) {
     attributes: formState.attributes,
     mode: formState.mode,
   });
+  return buildCareerFromPlayer(player, seed);
+}
+
+// Shared by the manual form and the Spin & Draft flow.
+export function buildCareerFromPlayer(player, seed) {
   const team = assembleUserTeam(player, seed);
   const season = generateSeason(team, seed);
   return createCareerState(player, team, season);
