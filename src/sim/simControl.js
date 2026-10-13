@@ -32,3 +32,16 @@ export function simGames(careerState, count, baseSeed = Date.now()) {
 export function gamesRemaining(careerState) {
   return SEASON_GAMES - careerState.season.completedGames.length;
 }
+
+const MAX_CAREER_SEASONS = 30;
+
+// Sims every remaining game of the career until the player retires.
+export function simCareer(careerState, baseSeed = Date.now()) {
+  let state = careerState;
+  let seasons = 0;
+  while (!state.retired && seasons < MAX_CAREER_SEASONS) {
+    state = simGames(state, 82, baseSeed + seasons * 7919).state;
+    seasons += 1;
+  }
+  return state;
+}

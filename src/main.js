@@ -13,7 +13,7 @@ import { dailySeed, dailyKey } from './data/draft.js';
 import { advanceSeason } from './sim/seasonFlow.js';
 import { simulateGame } from './sim/boxscore.js';
 import { createRng } from './sim/rng.js';
-import { simGames, gamesRemaining } from './sim/simControl.js';
+import { simGames, simCareer, gamesRemaining } from './sim/simControl.js';
 
 const app = document.getElementById('app');
 const STORAGE_KEY = 'goat-career:v1';
@@ -194,6 +194,7 @@ function showDashboard(careerState) {
     <button id="next-game-btn">Sim Next Game</button>
     <button id="sim-10-btn" class="ghost">Sim ${Math.min(10, remaining)}</button>
     <button id="sim-season-btn" class="ghost">Sim to season end</button>
+    <button id="sim-career-btn">Sim entire career</button>
   `;
   container.appendChild(actions);
 
@@ -212,6 +213,11 @@ function showDashboard(careerState) {
   });
   actions.querySelector('#sim-season-btn').addEventListener('click', () => {
     afterGames(careerState, simGames(careerState, remaining).state);
+  });
+  actions.querySelector('#sim-career-btn').addEventListener('click', () => {
+    const finished = simCareer(careerState);
+    saveCareer(finished);
+    showDashboard(finished);
   });
   homeBtn.addEventListener('click', () => showHome());
 }

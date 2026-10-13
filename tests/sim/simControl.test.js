@@ -55,3 +55,10 @@ test('a retired career does not keep simming', () => {
   const { state } = simGames({ ...freshState(), retired: true }, 10, 1);
   expect(state.season.completedGames).toHaveLength(0);
 });
+
+test('simCareer plays until the player retires', async () => {
+  const { simCareer } = await import('../../src/sim/simControl.js');
+  const end = simCareer(freshState(), 99);
+  expect(end.retired).toBe(true);
+  expect(end.careerHistory.length).toBeGreaterThan(3);
+});
