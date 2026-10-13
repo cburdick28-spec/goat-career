@@ -1,22 +1,18 @@
 import { createRng } from './rng.js';
 import { generateOpponentTeam } from '../data/team.js';
 
-export const LEAGUE_SIZE = 15;
+import { NBA_TEAMS } from '../data/nbaTeams.js';
+
+// Everyone except the franchise you play for.
+export const LEAGUE_SIZE = NBA_TEAMS.length - 1;
 const SEASON_LENGTH = 82;
 
-// Final-review fix: team names were `Team <huge seed-derived number>`,
-// which looked broken in the dashboard/standings. Names are assigned by
-// league slot (0-14), not by the seed, so they stay readable at any seed.
-const LEAGUE_TEAM_NAMES = [
-  'Comets', 'Thunderbolts', 'Ironclads', 'Ravens', 'Wildcats',
-  'Scorchers', 'Nighthawks', 'Vipers', 'Granite', 'Blaze',
-  'Monarchs', 'Outlaws', 'Tremors', 'Rapids', 'Sentinels',
-];
-
 export function generateSeason(userTeam, seed) {
-  const leagueTeams = Array.from({ length: LEAGUE_SIZE }, (_, i) => ({
+  const opponents = NBA_TEAMS.filter((t) => t.franchiseId !== userTeam.franchiseId).slice(0, LEAGUE_SIZE);
+  const leagueTeams = opponents.map((franchise, i) => ({
     ...generateOpponentTeam(seed * 1000 + i),
-    name: LEAGUE_TEAM_NAMES[i % LEAGUE_TEAM_NAMES.length],
+    name: franchise.name,
+    franchiseId: franchise.franchiseId,
   }));
 
   const rng = createRng(seed);
