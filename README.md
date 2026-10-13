@@ -41,3 +41,13 @@ node scripts/vcs.mjs commit -m "<message>"
 node scripts/vcs.mjs push
 node scripts/vcs.mjs log
 ```
+
+## Game modes
+
+- **Spin & Draft a Player** (goat-lab style): spin a reel of real NBA pros, bolt each
+  pro's rating onto one of six attribute slots, then sim the whole career.
+- **Dream Team** (82-0 style): draft one all-time player per position from packs of
+  four and sim 82 games to see if the lineup can go undefeated.
+- **Daily Build / Daily Dream**: same cards for everyone each day, one attempt, with a streak.
+
+Player ratings in `src/data/nbaPlayers.js` are hand-estimated approximations, not official numbers.

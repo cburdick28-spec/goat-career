@@ -1,0 +1,148 @@
+// Real NBA names with APPROXIMATE, hand-estimated ratings (25-99). These are
+// not official numbers: they are tuned so the stars feel like stars and each
+// player has a recognizable strength profile (Curry shoots, Rodman rebounds,
+// Stockton passes, Russell defends, and so on).
+//
+// Row format: [name, positions, ovr, shooting, speed, dunking, defense, passing, rebounding]
+// `ovr` is the overall used for rarity tiers; it is intentionally not derived
+// from the six attributes so reputation and profile can differ.
+const ROWS = [
+  // GOAT tier (95+)
+  ['Michael Jordan', ['SG', 'SF'], 99, 94, 93, 96, 95, 80, 70],
+  ['LeBron James', ['SF', 'PF'], 98, 88, 90, 96, 87, 95, 83],
+  ['Kareem Abdul-Jabbar', ['C'], 96, 92, 70, 92, 86, 76, 93],
+  ['Wilt Chamberlain', ['C'], 96, 68, 82, 98, 86, 72, 99],
+  ['Nikola Jokic', ['C'], 96, 87, 50, 72, 76, 99, 93],
+  ["Shaquille O'Neal", ['C'], 96, 55, 66, 99, 90, 60, 96],
+  ['Kobe Bryant', ['SG'], 96, 93, 88, 91, 90, 78, 66],
+  ['Magic Johnson', ['PG'], 95, 82, 86, 72, 78, 99, 78],
+  ['Larry Bird', ['SF', 'PF'], 95, 97, 68, 60, 80, 92, 86],
+  ['Tim Duncan', ['PF', 'C'], 95, 82, 64, 88, 95, 76, 96],
+  ['Stephen Curry', ['PG'], 95, 99, 90, 58, 68, 91, 52],
+  ['Kevin Durant', ['SF', 'PF'], 95, 97, 82, 86, 82, 72, 70],
+  ['Giannis Antetokounmpo', ['PF'], 95, 72, 89, 99, 91, 76, 91],
+
+  // Legend tier (90-94)
+  ['Bill Russell', ['C'], 94, 52, 78, 86, 99, 70, 99],
+  ['Hakeem Olajuwon', ['C'], 94, 84, 78, 92, 96, 68, 94],
+  ['Luka Doncic', ['PG', 'SG'], 94, 93, 70, 66, 64, 97, 80],
+  ['Shai Gilgeous-Alexander', ['PG', 'SG'], 94, 91, 90, 78, 82, 84, 52],
+  ['Victor Wembanyama', ['C', 'PF'], 93, 86, 70, 92, 98, 66, 88],
+  ['Oscar Robertson', ['PG'], 93, 90, 82, 70, 76, 96, 86],
+  ['Joel Embiid', ['C'], 93, 88, 60, 86, 88, 66, 88],
+  ['Kawhi Leonard', ['SF'], 93, 91, 82, 80, 98, 70, 76],
+  ['Jerry West', ['SG', 'PG'], 92, 95, 84, 62, 86, 82, 66],
+  ['Dirk Nowitzki', ['PF'], 92, 97, 56, 68, 70, 66, 80],
+  ['Julius Erving', ['SF'], 92, 86, 88, 98, 78, 76, 72],
+  ['David Robinson', ['C'], 92, 78, 80, 92, 92, 66, 92],
+  ['Kevin Garnett', ['PF'], 92, 82, 76, 86, 94, 74, 92],
+  ['Elgin Baylor', ['SF'], 91, 88, 86, 92, 70, 76, 90],
+  ['Charles Barkley', ['PF'], 91, 78, 76, 93, 72, 72, 95],
+  ['Karl Malone', ['PF'], 91, 82, 70, 92, 82, 66, 92],
+  ['Dwyane Wade', ['SG'], 91, 86, 92, 92, 88, 82, 66],
+  ['Chris Paul', ['PG'], 91, 88, 84, 48, 88, 98, 60],
+  ['James Harden', ['SG', 'PG'], 91, 94, 80, 66, 70, 94, 62],
+  ['Anthony Davis', ['PF', 'C'], 91, 82, 76, 92, 95, 62, 92],
+  ['Moses Malone', ['C', 'PF'], 90, 70, 70, 88, 80, 56, 99],
+  ['Scottie Pippen', ['SF'], 90, 78, 86, 86, 96, 86, 76],
+  ['Allen Iverson', ['PG', 'SG'], 90, 86, 98, 76, 74, 82, 48],
+  ['Jayson Tatum', ['SF', 'PF'], 90, 91, 80, 86, 82, 74, 76],
+  ['Anthony Edwards', ['SG'], 90, 88, 92, 94, 80, 72, 64],
+
+  // Superstar tier (85-89)
+  ['Isiah Thomas', ['PG'], 89, 86, 90, 60, 78, 95, 52],
+  ['Steve Nash', ['PG'], 89, 94, 80, 40, 52, 98, 52],
+  ['Kyrie Irving', ['PG'], 89, 94, 92, 58, 60, 88, 50],
+  ['Clyde Drexler', ['SG', 'SF'], 89, 82, 90, 92, 82, 78, 76],
+  ['George Gervin', ['SG', 'SF'], 89, 94, 82, 80, 70, 70, 64],
+  ['Tracy McGrady', ['SG', 'SF'], 89, 90, 86, 88, 72, 80, 66],
+  ['John Stockton', ['PG'], 89, 80, 78, 40, 92, 99, 48],
+  ['Bob Pettit', ['PF', 'C'], 89, 82, 70, 86, 76, 56, 94],
+  ['Patrick Ewing', ['C'], 88, 82, 66, 86, 92, 60, 92],
+  ['Walt Frazier', ['PG'], 88, 84, 84, 62, 96, 88, 62],
+  ['Russell Westbrook', ['PG'], 88, 76, 98, 92, 78, 92, 80],
+  ['Damian Lillard', ['PG'], 88, 95, 86, 66, 58, 86, 46],
+  ['Pete Maravich', ['SG', 'PG'], 88, 93, 84, 50, 62, 94, 58],
+  ['Rick Barry', ['SF'], 87, 90, 74, 72, 74, 86, 70],
+  ['Vince Carter', ['SG', 'SF'], 87, 88, 88, 99, 70, 70, 56],
+  ['Carmelo Anthony', ['SF', 'PF'], 87, 92, 74, 76, 62, 66, 70],
+  ['Dominique Wilkins', ['SF'], 87, 86, 88, 98, 62, 62, 68],
+  ['Gary Payton', ['PG'], 87, 82, 84, 56, 98, 92, 62],
+  ['Jason Kidd', ['PG'], 87, 78, 84, 62, 90, 96, 76],
+  ['Devin Booker', ['SG'], 87, 93, 84, 66, 66, 80, 48],
+  ['Jimmy Butler', ['SF', 'SG'], 87, 82, 82, 78, 92, 80, 66],
+  ['Dwight Howard', ['C'], 87, 54, 74, 96, 94, 50, 97],
+  ['Elvin Hayes', ['PF', 'C'], 86, 82, 78, 84, 84, 58, 96],
+  ['Yao Ming', ['C'], 86, 82, 52, 82, 86, 56, 88],
+  ['Pau Gasol', ['PF', 'C'], 86, 84, 62, 80, 78, 78, 88],
+  ['Reggie Miller', ['SG'], 86, 98, 78, 52, 66, 70, 48],
+  ['Paul Pierce', ['SF'], 86, 90, 72, 72, 74, 76, 66],
+  ['Grant Hill', ['SF', 'PF'], 86, 80, 84, 86, 82, 90, 76],
+  ['Donovan Mitchell', ['SG'], 86, 89, 90, 86, 66, 76, 50],
+  ['Jalen Brunson', ['PG'], 86, 89, 78, 52, 62, 86, 48],
+  ['Ray Allen', ['SG'], 86, 98, 76, 56, 70, 66, 52],
+  ['Penny Hardaway', ['PG', 'SG'], 85, 82, 86, 76, 78, 92, 70],
+  ['Manu Ginobili', ['SG'], 85, 84, 86, 80, 78, 86, 56],
+  ['Klay Thompson', ['SG'], 85, 96, 72, 56, 82, 58, 50],
+  ['Tyrese Haliburton', ['PG'], 85, 88, 80, 50, 70, 97, 56],
+  ['Paul George', ['SF', 'SG'], 85, 90, 84, 76, 88, 72, 68],
+  ['Derrick Rose', ['PG'], 85, 80, 98, 92, 56, 82, 48],
+  ['Bernard King', ['SF'], 85, 90, 82, 86, 62, 64, 66],
+
+  // All-Star tier (78-84)
+  ['Chris Bosh', ['PF', 'C'], 84, 82, 66, 82, 72, 56, 86],
+  ['Tony Parker', ['PG'], 84, 82, 96, 64, 64, 88, 40],
+  ['Bob McAdoo', ['C', 'PF'], 84, 90, 70, 76, 66, 52, 84],
+  ['Willis Reed', ['C'], 84, 78, 60, 78, 84, 50, 92],
+  ['Nate Thurmond', ['C'], 84, 66, 64, 76, 92, 64, 96],
+  ['Ja Morant', ['PG'], 84, 78, 96, 98, 62, 88, 50],
+  ['Trae Young', ['PG'], 84, 92, 84, 40, 40, 97, 40],
+  ['Dennis Rodman', ['PF'], 84, 40, 84, 70, 94, 60, 99],
+  ['Earl Monroe', ['SG'], 84, 86, 86, 66, 60, 84, 50],
+  ['Zion Williamson', ['PF'], 83, 66, 86, 99, 64, 70, 78],
+  ['Alex English', ['SF'], 83, 88, 78, 72, 56, 70, 60],
+  ['Draymond Green', ['PF', 'C'], 82, 62, 70, 52, 96, 90, 80],
+  ['Ben Wallace', ['C', 'PF'], 82, 40, 70, 74, 98, 48, 96],
+  ['Dikembe Mutombo', ['C'], 82, 40, 60, 80, 98, 40, 94],
+  ['Bam Adebayo', ['C', 'PF'], 82, 66, 78, 86, 92, 76, 86],
+  ['Adrian Dantley', ['SF'], 82, 86, 72, 70, 54, 64, 66],
+  ['Wes Unseld', ['C'], 82, 54, 56, 60, 86, 86, 94],
+  ['Sidney Moncrief', ['SG'], 82, 78, 82, 72, 92, 66, 64],
+  ['Kevin Love', ['PF'], 80, 90, 56, 52, 56, 76, 92],
+  ['Rudy Gobert', ['C'], 80, 40, 58, 86, 98, 48, 96],
+  ['Jrue Holiday', ['PG', 'SG'], 80, 78, 82, 56, 94, 78, 52],
+  ['Joe Dumars', ['SG'], 80, 84, 76, 58, 88, 70, 50],
+  ['Kyle Lowry', ['PG'], 78, 82, 78, 50, 86, 86, 56],
+  ['Mark Price', ['PG'], 78, 90, 80, 40, 60, 86, 44],
+
+  // Starter tier (below 78)
+  ['Al Horford', ['C', 'PF'], 76, 76, 56, 60, 82, 76, 82],
+  ['Andre Iguodala', ['SF'], 76, 70, 84, 82, 90, 80, 64],
+  ['Mikal Bridges', ['SF'], 76, 80, 80, 70, 88, 62, 56],
+  ['Derrick White', ['SG', 'PG'], 76, 80, 80, 56, 88, 76, 50],
+  ['Tyson Chandler', ['C'], 74, 40, 60, 84, 88, 44, 90],
+  ['Marcus Smart', ['PG', 'SG'], 72, 66, 80, 50, 94, 76, 52],
+  ['Robert Horry', ['PF', 'SF'], 72, 78, 70, 62, 76, 56, 64],
+  ['Kyle Korver', ['SF', 'SG'], 70, 94, 58, 42, 56, 56, 44],
+  ['Shane Battier', ['SF'], 70, 74, 66, 46, 90, 50, 56],
+  ['Patrick Beverley', ['PG'], 68, 66, 82, 44, 92, 56, 56],
+  ['Spud Webb', ['PG'], 68, 66, 94, 96, 50, 70, 30],
+  ['Mugsy Bogues', ['PG'], 66, 60, 94, 30, 84, 92, 28],
+  ['Bruce Bowen', ['SF'], 66, 76, 70, 40, 95, 40, 50],
+  ['Manute Bol', ['C'], 62, 30, 30, 66, 98, 30, 76],
+];
+
+function slug(name) {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+export const NBA_PLAYERS = ROWS.map(([name, pos, ovr, shooting, speed, dunking, defense, passing, rebounding]) => ({
+  id: slug(name),
+  name,
+  pos,
+  ovr,
+  attrs: { shooting, speed, dunking, defense, passing, rebounding },
+}));
