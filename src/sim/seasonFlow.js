@@ -59,27 +59,41 @@ export function advanceSeason(careerState, gameResult) {
   return nextState;
 }
 
+function withUpdatedPlayer(team, nextPlayer) {
+  return { ...team, players: team.players.map((p) => (p.id === nextPlayer.id ? nextPlayer : p)) };
+}
+
 function runOffseason(careerState) {
-  const { player, season, careerHistory } = careerState;
+  const { player, team, season, careerHistory } = careerState;
   const seasonBoxScores = season.completedGames.map((g) => g.userPlayerLine);
   const teamWinRate = season.record.wins / SEASON_LENGTH;
 
   const nextPlayer = applyProgression(player, seasonBoxScores);
   const awards = checkAwards(seasonBoxScores, teamWinRate);
   const retired = shouldRetire(nextPlayer, seasonBoxScores);
+  // Fixes a final-review finding: progression previously only updated
+  // careerState.player, but every game reads attributes from
+  // careerState.team.players, so growth/decline never affected gameplay.
+  const nextTeam = withUpdatedPlayer(team, nextPlayer);
 
-  const seasonSummary = { year: season.year, record: season.record, awards };
+  const averages = {
+    points: average(seasonBoxScores, 'points'),
+    rebounds: average(seasonBoxScores, 'rebounds'),
+    assists: average(seasonBoxScores, 'assists'),
+  };
+  const seasonSummary = { year: season.year, record: season.record, awards, averages };
   const nextCareerHistory = [...careerHistory, seasonSummary];
 
   if (retired) {
-    return { ...careerState, player: nextPlayer, careerHistory: nextCareerHistory, retired: true };
+    return { ...careerState, player: nextPlayer, team: nextTeam, careerHistory: nextCareerHistory, retired: true };
   }
 
   const seed = season.year + 1;
-  const newSeason = generateSeason(careerState.team, seed);
+  const newSeason = generateSeason(nextTeam, seed);
   return {
     ...careerState,
     player: nextPlayer,
+    team: nextTeam,
     careerHistory: nextCareerHistory,
     season: {
       ...newSeason,
@@ -89,4 +103,9 @@ function runOffseason(careerState) {
       completedGames: [],
     },
   };
+}
+
+function average(seasonBoxScores, key) {
+  if (seasonBoxScores.length === 0) return 0;
+  return seasonBoxScores.reduce((sum, g) => sum + g[key], 0) / seasonBoxScores.length;
 }

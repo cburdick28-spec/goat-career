@@ -7,6 +7,12 @@ test('normal mode rejects allocation exceeding the budget', () => {
     .toThrow('BUDGET_EXCEEDED');
 });
 
+test('normal mode rejects an allocation exactly one point over the budget', () => {
+  const overByOne = { shooting: 61, speed: 60, dunking: 60, defense: 60, passing: 60, rebounding: 60 }; // sums to 361
+  expect(() => createPlayer({ name: 'A', position: 'PG', archetype: 'PLAYMAKER', attributes: overByOne, mode: 'normal' }))
+    .toThrow('BUDGET_EXCEEDED');
+});
+
 test('normal mode accepts an allocation using exactly the budget', () => {
   const exact = { shooting: 60, speed: 60, dunking: 60, defense: 60, passing: 60, rebounding: 60 }; // sums to 360
   const player = createPlayer({ name: 'A', position: 'PG', archetype: 'PLAYMAKER', attributes: exact, mode: 'normal' });

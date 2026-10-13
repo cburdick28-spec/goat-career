@@ -61,3 +61,14 @@ test('advanceSeason triggers offseason processing and starts a new season after 
     expect(next.season.year).toBe(state.season.year + 1);
   }
 });
+
+test('offseason progression updates the player inside team.players too, so games actually see the new attributes', () => {
+  let state = freshState();
+  for (let i = 0; i < 82; i++) {
+    state = advanceSeason(state, resultFor(state, true));
+  }
+  const teamPlayerEntry = state.team.players.find((p) => p.id === state.player.id);
+  expect(teamPlayerEntry).toBeDefined();
+  expect(teamPlayerEntry.attributes).toEqual(state.player.attributes);
+  expect(teamPlayerEntry.age).toBe(state.player.age);
+});

@@ -15,9 +15,10 @@ export const ARCHETYPES = {
   REBOUNDER: defaultAllocation({ shooting: 35, speed: 45, dunking: 60, defense: 65, passing: 35, rebounding: 90 }),
 };
 
-function clamp(value) {
+export function clampAttribute(value) {
   return Math.min(ATTRIBUTE_MAX, Math.max(ATTRIBUTE_MIN, value));
 }
+const clamp = clampAttribute;
 
 export function createPlayer({ name, position, archetype, attributes, mode, id }) {
   const clamped = Object.fromEntries(ATTRIBUTE_KEYS.map((k) => [k, clamp(attributes[k])]));

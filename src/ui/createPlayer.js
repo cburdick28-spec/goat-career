@@ -1,4 +1,4 @@
-import { createPlayer, ARCHETYPES, ATTRIBUTE_KEYS, ATTRIBUTE_MIN, ATTRIBUTE_MAX, NORMAL_MODE_BUDGET } from '../data/player.js';
+import { createPlayer, ARCHETYPES, ATTRIBUTE_KEYS, ATTRIBUTE_MIN, ATTRIBUTE_MAX, NORMAL_MODE_BUDGET, clampAttribute } from '../data/player.js';
 import { assembleUserTeam } from '../data/team.js';
 import { generateSeason } from '../sim/schedule.js';
 import { createCareerState } from '../data/career.js';
@@ -19,11 +19,11 @@ export function buildCareerFromForm(formState, seed) {
 
 export function renderCreatePlayerScreen(rootEl, onComplete) {
   const archetypeNames = Object.keys(ARCHETYPES);
-  let mode = 'normal';
-  const attrState = Object.fromEntries(ATTRIBUTE_KEYS.map((k) => [k, ATTRIBUTE_MIN]));
+  const firstArchetype = archetypeNames[0];
 
   rootEl.innerHTML = `
-    <form id="create-player-form">
+    <form id="create-player-form" class="card">
+      <h2>Create Your Player</h2>
       <label>Name <input name="name" type="text" required /></label>
       <label>Position
         <select name="position">
@@ -35,7 +35,7 @@ export function renderCreatePlayerScreen(rootEl, onComplete) {
           ${archetypeNames.map((a) => `<option value="${a}">${a}</option>`).join('')}
         </select>
       </label>
-      <label><input name="legend" type="checkbox" /> Legend Mode (max every attribute)</label>
+      <label class="legend-toggle"><input name="legend" type="checkbox" /> Legend Mode (lets you max every attribute)</label>
       <div id="attribute-sliders">
         ${ATTRIBUTE_KEYS.map(
           (k) => `
@@ -45,24 +45,38 @@ export function renderCreatePlayerScreen(rootEl, onComplete) {
         ).join('')}
       </div>
       <div id="budget-display"></div>
+      <div id="form-error" class="form-error" hidden></div>
       <button type="submit">Create Player</button>
     </form>
   `;
 
   const form = rootEl.querySelector('#create-player-form');
   const budgetDisplay = rootEl.querySelector('#budget-display');
+  const errorDisplay = rootEl.querySelector('#form-error');
   const legendCheckbox = form.elements['legend'];
+  const archetypeSelect = form.elements['archetype'];
   const submitButton = form.querySelector('button[type="submit"]');
 
+  function mode() {
+    return legendCheckbox.checked ? 'legend' : 'normal';
+  }
+
   function currentAttributes() {
-    return Object.fromEntries(ATTRIBUTE_KEYS.map((k) => [k, Number(form.elements[`attr-${k}`].value)]));
+    return Object.fromEntries(ATTRIBUTE_KEYS.map((k) => [k, clampAttribute(Number(form.elements[`attr-${k}`].value) || 0)]));
+  }
+
+  function applyArchetypeDefaults() {
+    const defaults = ARCHETYPES[archetypeSelect.value];
+    ATTRIBUTE_KEYS.forEach((k) => {
+      form.elements[`attr-${k}`].value = defaults[k];
+    });
+    updateBudgetDisplay();
   }
 
   function updateBudgetDisplay() {
-    mode = legendCheckbox.checked ? 'legend' : 'normal';
     const attrs = currentAttributes();
     const total = ATTRIBUTE_KEYS.reduce((sum, k) => sum + attrs[k], 0);
-    if (mode === 'normal') {
+    if (mode() === 'normal') {
       budgetDisplay.textContent = `${total} / ${NORMAL_MODE_BUDGET}`;
       submitButton.disabled = total > NORMAL_MODE_BUDGET;
     } else {
@@ -72,19 +86,32 @@ export function renderCreatePlayerScreen(rootEl, onComplete) {
   }
 
   form.addEventListener('input', updateBudgetDisplay);
+  archetypeSelect.addEventListener('change', applyArchetypeDefaults);
+  ATTRIBUTE_KEYS.forEach((k) => {
+    form.elements[`attr-${k}`].value = ARCHETYPES[firstArchetype][k];
+  });
   updateBudgetDisplay();
 
   form.addEventListener('submit', (event) => {
     event.preventDefault();
+    errorDisplay.hidden = true;
     const formState = {
       name: form.elements['name'].value,
       position: form.elements['position'].value,
-      archetype: form.elements['archetype'].value,
+      archetype: archetypeSelect.value,
       attributes: currentAttributes(),
-      mode,
+      mode: mode(),
     };
-    const careerState = buildCareerFromForm(formState, Date.now());
-    saveCareer(careerState);
-    onComplete(careerState);
+    try {
+      const careerState = buildCareerFromForm(formState, Date.now());
+      saveCareer(careerState);
+      onComplete(careerState);
+    } catch (err) {
+      errorDisplay.textContent =
+        err.message === 'BUDGET_EXCEEDED'
+          ? `That allocation is over the ${NORMAL_MODE_BUDGET}-point budget. Lower an attribute or switch to Legend Mode.`
+          : 'Could not create that player. Please check the form and try again.';
+      errorDisplay.hidden = false;
+    }
   });
 }

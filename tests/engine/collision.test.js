@@ -16,12 +16,24 @@ test('checkScoringTrigger is false when the ball is outside the hoop radius', ()
   expect(checkScoringTrigger({ x: 5, y: 3.1, z: 10 }, { x: 0, y: -2, z: 0 }, bounds)).toBe(false);
 });
 
-test('isAiStuck is true when recent positions barely moved', () => {
-  const stillPositions = Array.from({ length: 90 }, () => ({ x: 1, z: 1 }));
-  expect(isAiStuck(stillPositions)).toBe(true);
+test('isAiStuck is true when position barely changed over the whole time window, regardless of sample count (frame-rate independent)', () => {
+  // 120Hz: many samples, tiny per-frame deltas, but near-zero net movement over the window
+  const highFreq = Array.from({ length: 108 }, (_, i) => ({ x: 1 + Math.sin(i) * 0.01, z: 1, t: i * (1 / 120) }));
+  expect(isAiStuck(highFreq)).toBe(true);
+
+  // 30Hz: fewer samples, same ~0.9s window, same near-zero net movement
+  const lowFreq = Array.from({ length: 27 }, (_, i) => ({ x: 1 + Math.sin(i) * 0.01, z: 1, t: i * (1 / 30) }));
+  expect(isAiStuck(lowFreq)).toBe(true);
 });
 
-test('isAiStuck is false when the player is actually moving', () => {
-  const movingPositions = Array.from({ length: 90 }, (_, i) => ({ x: i * 0.1, z: 0 }));
-  expect(isAiStuck(movingPositions)).toBe(false);
+test('isAiStuck is false when the player actually moved across the window, at any frame rate', () => {
+  const highFreq = Array.from({ length: 108 }, (_, i) => ({ x: i * (1 / 120) * 5, z: 0, t: i * (1 / 120) }));
+  expect(isAiStuck(highFreq)).toBe(false);
+
+  const lowFreq = Array.from({ length: 27 }, (_, i) => ({ x: i * (1 / 30) * 5, z: 0, t: i * (1 / 30) }));
+  expect(isAiStuck(lowFreq)).toBe(false);
+});
+
+test('isAiStuck is false when there is not yet a full window of history', () => {
+  expect(isAiStuck([{ x: 1, z: 1, t: 0 }])).toBe(false);
 });

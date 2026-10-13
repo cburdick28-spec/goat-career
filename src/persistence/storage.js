@@ -9,12 +9,41 @@ export function saveCareer(state) {
   }
 }
 
+// Minimal shape check so a stale/partial save (valid JSON, wrong shape)
+// is treated as corrupted instead of crashing the dashboard on render.
+function isValidCareerState(state) {
+  return (
+    !!state &&
+    typeof state === 'object' &&
+    !!state.player &&
+    !!state.team &&
+    Array.isArray(state.team.players) &&
+    !!state.season &&
+    Array.isArray(state.season.completedGames) &&
+    Array.isArray(state.season.schedule) &&
+    !!state.season.record &&
+    Array.isArray(state.careerHistory)
+  );
+}
+
 export function loadCareer() {
+  let raw;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw === null) return { state: null, fresh: true };
-    return { state: JSON.parse(raw), fresh: false };
+    raw = localStorage.getItem(STORAGE_KEY);
   } catch {
-    return { state: null, fresh: true };
+    return { state: null, fresh: true, corrupted: true };
   }
+  if (raw === null) return { state: null, fresh: true, corrupted: false };
+
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return { state: null, fresh: true, corrupted: true };
+  }
+
+  if (!isValidCareerState(parsed)) {
+    return { state: null, fresh: true, corrupted: true };
+  }
+  return { state: parsed, fresh: false, corrupted: false };
 }

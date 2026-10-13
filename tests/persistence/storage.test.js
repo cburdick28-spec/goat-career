@@ -13,21 +13,32 @@ beforeEach(() => {
 test('saveCareer then loadCareer round-trips the same state', () => {
   const state = createCareerState(player, team, season);
   saveCareer(state);
-  const { state: loaded, fresh } = loadCareer();
+  const { state: loaded, fresh, corrupted } = loadCareer();
   expect(fresh).toBe(false);
+  expect(corrupted).toBe(false);
   expect(loaded).toEqual(state);
 });
 
-test('loadCareer returns fresh:true when nothing is stored', () => {
-  const { state, fresh } = loadCareer();
+test('loadCareer returns fresh:true, corrupted:false when nothing is stored', () => {
+  const { state, fresh, corrupted } = loadCareer();
   expect(fresh).toBe(true);
+  expect(corrupted).toBe(false);
   expect(state).toBeNull();
 });
 
-test('loadCareer returns fresh:true when stored data is corrupted JSON', () => {
+test('loadCareer returns corrupted:true when stored data is invalid JSON', () => {
   localStorage.setItem('goat-career:v1', '{not valid json');
-  const { state, fresh } = loadCareer();
+  const { state, fresh, corrupted } = loadCareer();
   expect(fresh).toBe(true);
+  expect(corrupted).toBe(true);
+  expect(state).toBeNull();
+});
+
+test('loadCareer returns corrupted:true when stored JSON has the wrong shape', () => {
+  localStorage.setItem('goat-career:v1', JSON.stringify({ some: 'unrelated', data: 1 }));
+  const { state, fresh, corrupted } = loadCareer();
+  expect(fresh).toBe(true);
+  expect(corrupted).toBe(true);
   expect(state).toBeNull();
 });
 
@@ -35,7 +46,10 @@ test('saveCareer does not throw when localStorage.setItem throws (quota/private 
   const spy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
     throw new Error('QuotaExceededError');
   });
-  const state = createCareerState(player, team, season);
-  expect(() => saveCareer(state)).not.toThrow();
-  spy.mockRestore();
+  try {
+    const state = createCareerState(player, team, season);
+    expect(() => saveCareer(state)).not.toThrow();
+  } finally {
+    spy.mockRestore();
+  }
 });

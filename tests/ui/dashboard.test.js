@@ -1,5 +1,5 @@
 import { test, expect } from 'vitest';
-import { computeStandings, formatGameLog } from '../../src/ui/dashboard.js';
+import { computeStandings, formatGameLog, computePlayerAverages } from '../../src/ui/dashboard.js';
 
 const USER_TEAM_ID = 'user';
 
@@ -25,6 +25,21 @@ test('computeStandings sorts teams by wins descending', () => {
   ];
   const standings = computeStandings(teams, games);
   expect(standings.map((s) => s.teamId)).toEqual(['a', 'b', 'c']);
+});
+
+test('computePlayerAverages averages the stored per-game user stat line', () => {
+  const games = [
+    { userPlayerLine: { points: 20, rebounds: 4, assists: 6, steals: 1, blocks: 0 } },
+    { userPlayerLine: { points: 30, rebounds: 6, assists: 4, steals: 3, blocks: 2 } },
+  ];
+  const averages = computePlayerAverages(games);
+  expect(averages.points).toBe(25);
+  expect(averages.assists).toBe(5);
+});
+
+test('computePlayerAverages returns zeroes for an empty season so far', () => {
+  const averages = computePlayerAverages([]);
+  expect(averages.points).toBe(0);
 });
 
 test('formatGameLog marks wins and losses correctly from the user team perspective', () => {

@@ -1,6 +1,10 @@
 const RIM_VERTICAL_TOLERANCE = 0.3;
-const STUCK_POSITION_EPSILON = 0.05;
-const STUCK_SAMPLE_COUNT = 90;
+// Final-review fix: the old per-frame-delta check was frame-rate dependent —
+// a smoothly moving player at normal speed produced a sub-threshold delta on
+// a high-refresh display and was incorrectly flagged "stuck". Measuring net
+// displacement over a wall-clock time window fixes that at any frame rate.
+const STUCK_WINDOW_SECONDS = 0.8;
+const STUCK_DISTANCE_EPSILON = 0.3;
 
 export function checkScoringTrigger(ballPosition, ballVelocity, hoopBounds) {
   const dx = ballPosition.x - hoopBounds.center.x;
@@ -12,13 +16,19 @@ export function checkScoringTrigger(ballPosition, ballVelocity, hoopBounds) {
   return withinRadius && nearRimHeight && descending;
 }
 
-export function isAiStuck(recentPositions) {
-  const sample = recentPositions.slice(-STUCK_SAMPLE_COUNT);
-  if (sample.length < STUCK_SAMPLE_COUNT) return false;
-  for (let i = 1; i < sample.length; i++) {
-    const dx = Math.abs(sample[i].x - sample[i - 1].x);
-    const dz = Math.abs(sample[i].z - sample[i - 1].z);
-    if (dx >= STUCK_POSITION_EPSILON || dz >= STUCK_POSITION_EPSILON) return false;
+// `history` is an array of {x, z, t} samples in increasing t order.
+export function isAiStuck(history) {
+  if (history.length === 0) return false;
+  const latest = history[history.length - 1];
+  let oldest = null;
+  for (let i = history.length - 1; i >= 0; i--) {
+    if (latest.t - history[i].t >= STUCK_WINDOW_SECONDS) {
+      oldest = history[i];
+      break;
+    }
   }
-  return true;
+  if (!oldest) return false;
+  const dx = latest.x - oldest.x;
+  const dz = latest.z - oldest.z;
+  return Math.sqrt(dx * dx + dz * dz) < STUCK_DISTANCE_EPSILON;
 }
