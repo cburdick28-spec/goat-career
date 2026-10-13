@@ -1,0 +1,258 @@
+:root {
+  --bg: #0b0f14;
+  --panel: #141a21;
+  --panel-border: #222b35;
+  --text: #e8edf2;
+  --text-dim: #8a98a8;
+  --accent: #ff6b00;
+  --accent-dim: #c9540a;
+  --win: #3ddc84;
+  --loss: #ff5c5c;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+}
+
+#app {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+}
+
+#app::before {
+  content: 'GOAT CAREER';
+  display: block;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  font-size: 1.1rem;
+  color: var(--accent);
+  margin-bottom: 20px;
+}
+
+h1, h2, h3 {
+  margin: 0 0 8px;
+  font-weight: 700;
+}
+
+h2 {
+  font-size: 1.4rem;
+}
+
+h3 {
+  font-size: 1.05rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+p {
+  margin: 6px 0;
+}
+
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+li {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+li:last-child {
+  border-bottom: none;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+label {
+  display: block;
+  margin-bottom: 14px;
+  font-size: 0.9rem;
+  color: var(--text-dim);
+}
+
+label.legend-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+}
+
+input[type='text'],
+input[type='number'],
+select {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 10px 12px;
+  background: #0f1419;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 1rem;
+}
+
+input[type='checkbox'] {
+  width: auto;
+  accent-color: var(--accent);
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+#attribute-sliders {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0 16px;
+}
+
+#budget-display {
+  font-weight: 700;
+  color: var(--accent);
+  margin: 10px 0;
+}
+
+.form-error {
+  background: rgba(255, 92, 92, 0.12);
+  border: 1px solid var(--loss);
+  color: var(--loss);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+}
+
+.notice {
+  background: rgba(255, 107, 0, 0.1);
+  border: 1px solid var(--accent-dim);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-top: 16px;
+  font-size: 0.9rem;
+  color: var(--text-dim);
+}
+
+button {
+  display: inline-block;
+  background: var(--accent);
+  color: #0b0f14;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.05s ease;
+}
+
+button:hover:not(:disabled) {
+  background: #ff7e1f;
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+button:disabled {
+  background: #3a3a3a;
+  color: var(--text-dim);
+  cursor: not-allowed;
+}
+
+#game-choice {
+  text-align: center;
+}
+
+#game-choice button {
+  margin: 6px;
+}
+
+#sim-btn {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+
+#sim-btn:hover:not(:disabled) {
+  background: rgba(255, 107, 0, 0.1);
+}
+
+#game-canvas {
+  display: block;
+  margin: 16px auto 0;
+  border-radius: 12px;
+  border: 1px solid var(--panel-border);
+  max-width: 100%;
+}
+
+.game-hud {
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text);
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 8px;
+  padding: 8px 14px;
+  margin: 0 auto 8px;
+  text-align: center;
+  max-width: 500px;
+}
+
+#perfect-season-banner {
+  font-weight: 700;
+  padding: 8px 12px;
+  border-radius: 8px;
+  display: inline-block;
+}
+
+#perfect-season-banner.banner-alive {
+  background: rgba(61, 220, 132, 0.15);
+  color: var(--win);
+}
+
+#perfect-season-banner.banner-ended {
+  background: rgba(255, 92, 92, 0.12);
+  color: var(--loss);
+}
+
+.attribute-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2px 16px;
+}
+
+#next-game-btn {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+}
+
+@media (max-width: 600px) {
+  #attribute-sliders,
+  .attribute-list {
+    grid-template-columns: 1fr;
+  }
+}

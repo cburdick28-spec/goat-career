@@ -9,7 +9,7 @@ export function renderGameChoice(rootEl, careerState, onResult) {
   const opponentTeam = season.leagueTeams.find((t) => t.id === scheduledGame.opponentTeamId);
 
   rootEl.innerHTML = `
-    <section id="game-choice">
+    <section id="game-choice" class="card">
       <h2>Game ${gameIndex + 1} of 82 vs ${opponentTeam.name}</h2>
       <button id="play-btn">Play</button>
       <button id="sim-btn">Sim</button>

@@ -1,3 +1,4 @@
+import './style.css';
 import { loadCareer, saveCareer } from './persistence/storage.js';
 import { renderCreatePlayerScreen } from './ui/createPlayer.js';
 import { renderGameChoice } from './ui/gameChoice.js';
