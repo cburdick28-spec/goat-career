@@ -1,0 +1,23 @@
+{
+  "name": "goat-career",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "three": "^0.169.0"
+  },
+  "devDependencies": {
+    "vite": "^5.4.8",
+    "vitest": "^2.1.2",
+    "isomorphic-git": "^1.27.1",
+    "jsdom": "^25.0.1"
+  },
+  "allowScripts": {
+    "esbuild@0.21.5": true
+  }
+}
