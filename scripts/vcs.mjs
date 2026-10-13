@@ -10,8 +10,8 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const dir = path.resolve(__dirname, '..');
-const REMOTE_URL = 'https://github.com/cburdick28/goat-career.git';
-const AUTHOR = { name: 'cburdick28', email: 'cburdick28@users.noreply.github.com' };
+const REMOTE_URL = 'https://github.com/cburdick28-spec/goat-career.git';
+const AUTHOR = { name: 'cburdick28-spec', email: 'cburdick28-spec@users.noreply.github.com' };
 
 const [, , cmd, ...args] = process.argv;
 
