@@ -19,7 +19,7 @@ function clamp(value) {
   return Math.min(ATTRIBUTE_MAX, Math.max(ATTRIBUTE_MIN, value));
 }
 
-export function createPlayer({ name, position, archetype, attributes, mode }) {
+export function createPlayer({ name, position, archetype, attributes, mode, id }) {
   const clamped = Object.fromEntries(ATTRIBUTE_KEYS.map((k) => [k, clamp(attributes[k])]));
 
   if (mode === 'normal') {
@@ -30,7 +30,7 @@ export function createPlayer({ name, position, archetype, attributes, mode }) {
   }
 
   return {
-    id: crypto.randomUUID(),
+    id: id ?? crypto.randomUUID(),
     name,
     position,
     archetype,
