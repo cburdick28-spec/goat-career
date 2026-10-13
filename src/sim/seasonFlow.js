@@ -2,6 +2,9 @@ import { generateSeason } from './schedule.js';
 import { applyProgression } from './progression.js';
 import { checkAwards } from './awards.js';
 import { shouldRetire } from './retirement.js';
+import { simulatePlayoffs } from './playoffs.js';
+import { createRng } from './rng.js';
+import { ATTRIBUTE_KEYS } from '../data/player.js';
 
 const SEASON_LENGTH = 82;
 
@@ -81,7 +84,19 @@ function runOffseason(careerState) {
     rebounds: average(seasonBoxScores, 'rebounds'),
     assists: average(seasonBoxScores, 'assists'),
   };
-  const seasonSummary = { year: season.year, record: season.record, awards, averages };
+  const playoffs = simulatePlayoffs(team, season.leagueTeams, season.record.wins, createRng(season.year * 7919 + season.record.wins));
+  // How the offseason changed the player, for the recap screen.
+  const changes = Object.fromEntries(ATTRIBUTE_KEYS.map((k) => [k, nextPlayer.attributes[k] - player.attributes[k]]));
+  const seasonSummary = {
+    year: season.year,
+    record: season.record,
+    awards,
+    averages,
+    teamName: team.name,
+    age: player.age,
+    playoffs,
+    changes,
+  };
   const nextCareerHistory = [...careerHistory, seasonSummary];
 
   if (retired) {

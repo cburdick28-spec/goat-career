@@ -1,5 +1,7 @@
 import { createPlayer, ARCHETYPES, ATTRIBUTE_KEYS, ATTRIBUTE_MIN, ATTRIBUTE_MAX, NORMAL_MODE_BUDGET, clampAttribute } from '../data/player.js';
 import { assembleUserTeam } from '../data/team.js';
+import { findFranchise } from '../data/nbaTeams.js';
+import { teamSelectMarkup } from './teamSelect.js';
 import { generateSeason } from '../sim/schedule.js';
 import { createCareerState } from '../data/career.js';
 import { saveCareer } from '../persistence/storage.js';
@@ -12,12 +14,12 @@ export function buildCareerFromForm(formState, seed) {
     attributes: formState.attributes,
     mode: formState.mode,
   });
-  return buildCareerFromPlayer(player, seed);
+  return buildCareerFromPlayer(player, seed, formState.franchiseId);
 }
 
 // Shared by the manual form and the Spin & Draft flow.
-export function buildCareerFromPlayer(player, seed) {
-  const team = assembleUserTeam(player, seed);
+export function buildCareerFromPlayer(player, seed, franchiseId) {
+  const team = assembleUserTeam(player, seed, findFranchise(franchiseId));
   const season = generateSeason(team, seed);
   return createCareerState(player, team, season);
 }
@@ -40,6 +42,7 @@ export function renderCreatePlayerScreen(rootEl, onComplete) {
           ${archetypeNames.map((a) => `<option value="${a}">${a}</option>`).join('')}
         </select>
       </label>
+      ${teamSelectMarkup()}
       <label class="legend-toggle"><input name="legend" type="checkbox" /> Legend Mode (lets you max every attribute)</label>
       <div id="attribute-sliders">
         ${ATTRIBUTE_KEYS.map(
@@ -106,6 +109,7 @@ export function renderCreatePlayerScreen(rootEl, onComplete) {
       archetype: archetypeSelect.value,
       attributes: currentAttributes(),
       mode: mode(),
+      franchiseId: form.elements['franchise'].value,
     };
     try {
       const careerState = buildCareerFromForm(formState, Date.now());

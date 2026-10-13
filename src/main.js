@@ -2,15 +2,18 @@ import './style.css';
 import { loadCareer, saveCareer } from './persistence/storage.js';
 import { getDailyResult } from './persistence/daily.js';
 import { renderCreatePlayerScreen, buildCareerFromPlayer } from './ui/createPlayer.js';
-import { renderGameChoice } from './ui/gameChoice.js';
 import { renderDashboard } from './ui/dashboard.js';
 import { renderHome, renderDailyDone } from './ui/home.js';
 import { renderSpinDraft } from './ui/spinDraft.js';
 import { renderDreamTeam } from './ui/dreamTeam.js';
+import { renderSeasonRecap } from './ui/recap.js';
 import { buildBuildShareText, buildDreamShareText, shareText } from './ui/share.js';
 import { escapeHtml } from './ui/html.js';
 import { dailySeed, dailyKey } from './data/draft.js';
 import { advanceSeason } from './sim/seasonFlow.js';
+import { simulateGame } from './sim/boxscore.js';
+import { createRng } from './sim/rng.js';
+import { simGames, gamesRemaining } from './sim/simControl.js';
 
 const app = document.getElementById('app');
 const STORAGE_KEY = 'goat-career:v1';
@@ -71,8 +74,8 @@ function startBuild({ daily }) {
   renderSpinDraft(
     app,
     { seed: daily ? dailySeed() : Date.now(), daily },
-    ({ player }) => {
-      const careerState = buildCareerFromPlayer(player, daily ? dailySeed() : Date.now());
+    ({ player, franchiseId }) => {
+      const careerState = buildCareerFromPlayer(player, daily ? dailySeed() : Date.now(), franchiseId);
       saveCareer(careerState);
       showDashboard(careerState);
     },
@@ -124,14 +127,18 @@ function showCareerSummary(careerState) {
   const totalLosses = careerState.careerHistory.reduce((sum, s) => sum + s.record.losses, 0);
   const mvps = careerState.careerHistory.filter((s) => s.awards?.mvp).length;
   const allStars = careerState.careerHistory.filter((s) => s.awards?.allStar).length;
+  const titles = careerState.careerHistory.filter((s) => s.playoffs?.champion).length;
 
   container.innerHTML = `
     <section class="card">
       <h2>${escapeHtml(careerState.player.name)}'s Career Is Complete</h2>
       <p>${careerState.careerHistory.length} seasons — ${totalWins}-${totalLosses}</p>
-      <p>${mvps} MVP award(s), ${allStars} All-Star selection(s)</p>
+      <p>${titles} championship(s), ${mvps} MVP award(s), ${allStars} All-Star selection(s)</p>
       <ul>${careerState.careerHistory
-        .map((s) => `<li>Season ${s.year}: ${s.record.wins}-${s.record.losses}</li>`)
+        .map(
+          (s) =>
+            `<li>Season ${s.year}: ${s.record.wins}-${s.record.losses}${s.playoffs?.champion ? ' 🏆' : s.playoffs?.made ? ` (${escapeHtml(s.playoffs.eliminatedIn)})` : ''}</li>`
+        )
         .join('')}</ul>
       <div class="action-row">
         <button id="share-career-btn">Share</button>
@@ -160,6 +167,17 @@ function showCareerSummary(careerState) {
   });
 }
 
+// After a game (or batch of games): if the season just ended, show the recap first.
+function afterGames(previousState, nextState) {
+  saveCareer(nextState);
+  if (nextState.careerHistory.length > previousState.careerHistory.length) {
+    const entry = nextState.careerHistory[nextState.careerHistory.length - 1];
+    renderSeasonRecap(app, entry, { retired: nextState.retired }, () => showDashboard(nextState));
+    return;
+  }
+  showDashboard(nextState);
+}
+
 function showDashboard(careerState) {
   if (careerState.retired) {
     showCareerSummary(careerState);
@@ -169,10 +187,15 @@ function showDashboard(careerState) {
   const container = document.createElement('div');
   renderDashboard(container, careerState);
 
-  const nextBtn = document.createElement('button');
-  nextBtn.id = 'next-game-btn';
-  nextBtn.textContent = 'Next Game';
-  container.appendChild(nextBtn);
+  const remaining = gamesRemaining(careerState);
+  const actions = document.createElement('div');
+  actions.className = 'action-row dash-actions';
+  actions.innerHTML = `
+    <button id="next-game-btn">Sim Next Game</button>
+    <button id="sim-10-btn" class="ghost">Sim ${Math.min(10, remaining)}</button>
+    <button id="sim-season-btn" class="ghost">Sim to season end</button>
+  `;
+  container.appendChild(actions);
 
   const homeBtn = document.createElement('button');
   homeBtn.id = 'home-btn';
@@ -183,16 +206,22 @@ function showDashboard(careerState) {
   app.innerHTML = '';
   app.appendChild(container);
 
-  nextBtn.addEventListener('click', () => showGameChoice(careerState));
+  actions.querySelector('#next-game-btn').addEventListener('click', () => simOneGame(careerState));
+  actions.querySelector('#sim-10-btn').addEventListener('click', () => {
+    afterGames(careerState, simGames(careerState, Math.min(10, remaining)).state);
+  });
+  actions.querySelector('#sim-season-btn').addEventListener('click', () => {
+    afterGames(careerState, simGames(careerState, remaining).state);
+  });
   homeBtn.addEventListener('click', () => showHome());
 }
 
-function showGameChoice(careerState) {
-  renderGameChoice(app, careerState, (gameResult) => {
-    const nextState = advanceSeason(careerState, gameResult);
-    saveCareer(nextState);
-    showDashboard(nextState);
-  });
+function simOneGame(careerState) {
+  const { team, season } = careerState;
+  const scheduled = season.schedule[season.completedGames.length];
+  const opponent = season.leagueTeams.find((t) => t.id === scheduled.opponentTeamId);
+  const result = simulateGame(team, opponent, createRng(Date.now() % 100000));
+  afterGames(careerState, advanceSeason(careerState, result));
 }
 
 function boot() {

@@ -1,6 +1,6 @@
-import { computeTeamRating } from '../data/team.js';
+import { computeTeamStrength } from '../data/team.js';
 
-const RATING_SCALE = 15;
+const RATING_SCALE = 12;
 const TEAM_STAT_BASES = {
   rebounds: { base: 40, variance: 10 },
   assists: { base: 24, variance: 8 },
@@ -55,8 +55,8 @@ function buildBoxScore(team, teamScore, rng) {
 }
 
 export function simulateGame(teamA, teamB, rng) {
-  const ratingA = computeTeamRating(teamA);
-  const ratingB = computeTeamRating(teamB);
+  const ratingA = computeTeamStrength(teamA);
+  const ratingB = computeTeamStrength(teamB);
   const pWinA = 1 / (1 + 10 ** (-(ratingA - ratingB) / RATING_SCALE));
 
   const aWins = rng() < pWinA;

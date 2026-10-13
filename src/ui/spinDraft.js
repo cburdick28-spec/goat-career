@@ -16,6 +16,7 @@ import { NBA_PLAYERS } from '../data/nbaPlayers.js';
 import { ATTRIBUTE_KEYS } from '../data/player.js';
 import { saveDailyResult } from '../persistence/daily.js';
 import { escapeHtml, capitalize } from './html.js';
+import { teamSelectMarkup } from './teamSelect.js';
 
 const DEFAULT_POSITION = {
   SHARPSHOOTER: 'SG',
@@ -170,6 +171,7 @@ export function renderSpinDraft(rootEl, options, onComplete, onBack) {
           <label>Player name
             <input name="name" type="text" maxlength="24" placeholder="The GOAT" />
           </label>
+          ${teamSelectMarkup()}
           <label>Position
             <select name="position">
               ${POSITIONS.map((p) => `<option value="${p}" ${p === DEFAULT_POSITION[archetype] ? 'selected' : ''}>${p}</option>`).join('')}
@@ -188,7 +190,7 @@ export function renderSpinDraft(rootEl, options, onComplete, onBack) {
         position: form.elements['position'].value,
       });
       if (daily) saveDailyResult('build', dailyKey(), { overall, name: player.name });
-      onComplete({ player, draft: state.draft, overall, daily, seed });
+      onComplete({ player, draft: state.draft, overall, daily, seed, franchiseId: form.elements['franchise'].value });
     });
   }
 
